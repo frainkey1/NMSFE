@@ -1,0 +1,7 @@
+<Window x:Class="NMSE.Next.Desktop.SplashWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" WindowStyle="None" AllowsTransparency="True" Background="Transparent" ResizeMode="NoResize" ShowInTaskbar="False" WindowStartupLocation="CenterScreen" Width="260" Height="260" Topmost="True">
+ <Grid>
+  <Image Source="pack://application:,,,/NMSFE;component/Assets/NMSFE-Splash-Transparent.png" Stretch="Uniform" SnapsToDevicePixels="True"/>
+  <Border Background="#06162B" CornerRadius="3" Width="140" Height="5" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="58,228,0,0"/>
+  <Border x:Name="ProgressFill" Background="#12E7FF" CornerRadius="3" Width="0" Height="5" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="58,228,0,0"/>
+ </Grid>
+</Window>

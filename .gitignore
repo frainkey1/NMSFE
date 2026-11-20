@@ -1,0 +1,12 @@
+# Build and IDE output
+Build/
+**/bin/
+**/obj/
+.vs/
+*.user
+*.suo
+
+# Local translation-pass scratch scripts; keep the maintained audits
+/*.py
+!/.editor_locale_audit.py
+!/.editor_game_localisation_audit.py

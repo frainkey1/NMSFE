@@ -1,0 +1,1 @@
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><AssemblyName>NMSE.Next.Engine</AssemblyName></PropertyGroup><ItemGroup><InternalsVisibleTo Include="NMSE.Next"/><InternalsVisibleTo Include="NMSFE"/><InternalsVisibleTo Include="NMSE.Next.Checks"/></ItemGroup></Project>
