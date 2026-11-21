@@ -30,6 +30,16 @@ dotnet run --project Desktop/Desktop.csproj
 
 Select an existing save and Load, or use Open. Edits remain in memory until Save. Light / Dark switches the theme. 
 
+## Package for Windows
+
+Create a self-contained Windows x64 release ZIP with a single visible launcher and grouped resources:
+
+```powershell
+.\scripts\Publish-Windows.ps1 -Version 1.0.1
+```
+
+The ZIP is written under `Build/Packages`. It contains `NMSFE.exe`, `Resources/`, and `README-FIRST.txt`; the .NET runtime is bundled in the executable.
+
 ## Build and checks
 Requires .NET 10 Desktop Runtime/SDK on Windows.
 
