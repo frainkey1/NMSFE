@@ -1,4 +1,4 @@
-# NMSFE — Save File Editor
+# No Man's Sky File Editor (NMSFE)
 
 A standalone WPF migration alongside the existing NMSE editor.
 
