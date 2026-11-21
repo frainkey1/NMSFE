@@ -1076,7 +1076,7 @@ internal static class InventoryBulkActions
     /// by name, type, rarity, or type then rarity, and then laid out across Chest 0-9 in order, filling one
     /// chest's slots before spilling into the next.
     /// </summary>
-    /// <param name="playerState">The PlayerStateData JSON object.</param>
+
     /// <param name="database">Game item database, used to resolve names/categories for sorting.</param>
     /// <param name="mode">Whether to sort by item name, type, rarity, or type then rarity.</param>
     /// <param name="paddingPerChest">Number of trailing slots to leave empty at the end of each chest.</param>
@@ -1231,15 +1231,67 @@ internal static class InventoryBulkActions
     }
 
     /// <summary>
-    /// Merges matching item stacks across all 10 standard Chest inventories without reordering
-    /// or resorting anything: each item's surviving stacks keep their original chest and slot
-    /// position, only their Amount changes, and any now-redundant duplicate slots are removed
-    /// to free space. Items with no duplicates elsewhere are left completely untouched.
-    /// Unlike <see cref="SortAllChests"/>, this can never fail - it only ever removes slots,
-    /// so there's no "not enough space" case and no padding concept.
+    /// Merges compatible stacks across Chest 0-9, then sorts each chest independently. Items
+    /// Sorting never redistributes stacks between chests. The operation is planned on a clone
+    /// and committed only if every chest can be laid out.
+    /// </summary>
+    public static ChestSortResult MergeAndSortChestsIndividually(JsonObject playerState, GameItemDatabase database, ChestSortMode mode, int paddingPerChest)
+    {
+        var draft = (JsonObject)playerState.DeepClone();
+        var merge = MergeAllChestsInPlace(draft, database);
+        int stacksPlaced = 0;
+        int slotsAvailable = 0;
+        int slotsFreed = merge.SlotsFreed;
+
+        foreach (var key in BaseLogic.ChestInventoryKeys)
+        {
+            var inventory = draft.GetObject(key);
+            if (inventory == null) continue;
+
+            var singleChestState = new JsonObject();
+            singleChestState.Set(key, inventory.DeepClone());
+            var sorted = SortAllChests(singleChestState, database, mode, paddingPerChest);
+            if (!sorted.Success)
+                return new ChestSortResult
+                {
+                    Success = false,
+                    StacksPlaced = sorted.StacksPlaced,
+                    SlotsAvailable = sorted.SlotsAvailable,
+                    SlotsFreed = 0,
+                };
+
+            var sortedInventory = singleChestState.GetObject(key);
+            if (sortedInventory?.GetArray("Slots") is { } sortedSlots)
+                inventory.Set("Slots", sortedSlots.DeepClone());
+            stacksPlaced += sorted.StacksPlaced;
+            slotsAvailable += sorted.SlotsAvailable;
+            slotsFreed += sorted.SlotsFreed;
+        }
+
+        foreach (var key in BaseLogic.ChestInventoryKeys)
+        {
+            var original = playerState.GetObject(key);
+            var updated = draft.GetObject(key);
+            if (original != null && updated?.GetArray("Slots") is { } slots)
+                original.Set("Slots", slots.DeepClone());
+        }
+
+        return new ChestSortResult
+        {
+            Success = true,
+            StacksPlaced = stacksPlaced,
+            SlotsAvailable = slotsAvailable,
+            SlotsFreed = slotsFreed,
+        };
+    }
+
+    /// <summary>
+    /// Merges matching item stacks across all 10 standard Chest inventories without reordering.
+    /// Each surviving stack keeps its chest and slot position while its amount changes; redundant
+    /// duplicate slots are removed. Items without duplicates remain untouched.
     /// </summary>
     /// <param name="playerState">The PlayerStateData JSON object.</param>
-    /// <param name="database">Game item database, used to resolve each item's max stack size.</param>
+    /// <param name="database">Game item database used to resolve max stack sizes.</param>
     public static ChestMergeResult MergeAllChestsInPlace(JsonObject playerState, GameItemDatabase database)
     {
         var chestSlotsArrays = new List<JsonArray?>();

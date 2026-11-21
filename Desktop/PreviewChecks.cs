@@ -61,7 +61,7 @@ public partial class MainWindow
     }
     var occupied=((IEnumerable<SlotView>)Slots.ItemsSource).First(x=>x.Data!=null);
     SelectSlot(new Button{Tag=occupied},new RoutedEventArgs());
-    if(DetailIcon.Source==null || SlotName.Text=="Select an inventory slot")throw new Exception("Real slot inspector is not connected");checks++;
+    if(DetailIcon.Source==null || string.IsNullOrWhiteSpace(SlotName.Text))throw new Exception("Real slot inspector is not connected");checks++;
     var selectedData=_selectedSlot!.Data;RenderInventory();if(!ReferenceEquals(selectedData,_selectedSlot?.Data))throw new Exception("Repainting loses slot selection");checks++;
     UpdateLayout();await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
     var ug=FindVisual<System.Windows.Controls.Primitives.UniformGrid>(Slots)!;

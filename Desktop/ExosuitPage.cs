@@ -186,7 +186,7 @@ public partial class MainWindow
    var title = new StackPanel { Orientation = Orientation.Horizontal };
    title.Children.Add(ConceptIcons.Make(pageName, 25));
    title.Children.Add(new TextBlock { Text = " " + pageName, Style = (Style)FindResource("Heading") });
-   if (page == 3)
+   if (page == MainPageCatalog.Starships || page == MainPageCatalog.Corvettes)
    {
     _shipPrimaryLabel = new TextBlock { FontSize = 13, FontStyle = FontStyles.Italic, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(10, 2, 0, 0) };
     RefreshPrimaryShipLabel();
@@ -261,8 +261,10 @@ public partial class MainWindow
    }
    if(page!=5 || !_showingSummoningStations)
    {
-    var inventoryHeaderLeft=new StackPanel{Margin=new Thickness(0,0,0,3)};if(inventoryTabs!=null)inventoryHeaderLeft.Children.Add(inventoryTabs);inventoryHeaderLeft.Children.Add(jsonLinks);
     bool hasInventoryGrid=!(page==MainPageCatalog.Starships&&_showShipCustomisation)&&!(page==MainPageCatalog.Corvettes&&_showCorvetteCustomisation);
+    var inventoryHeaderLeft=new StackPanel{Margin=new Thickness(0,0,0,3)};if(inventoryTabs!=null)inventoryHeaderLeft.Children.Add(inventoryTabs);
+    if(hasInventoryGrid&&_exoInventoryKey!="Inventory_TechOnly")inventoryHeaderLeft.Children.Add(new TextBlock{Text=UiStrings.Get("inventory.fossil_pcg_note"),Margin=new Thickness(5,0,5,5),TextWrapping=TextWrapping.Wrap});
+    inventoryHeaderLeft.Children.Add(jsonLinks);
     Grid.SetRow(inventoryHeaderLeft,1);_exoContent.Children.Add(inventoryHeaderLeft);
     if(hasInventoryGrid || (page==MainPageCatalog.Corvettes&&_showCorvetteCustomisation)){_exoResizeControls=new ContentControl { HorizontalContentAlignment=HorizontalAlignment.Stretch, Margin=page==MainPageCatalog.Corvettes&&_showCorvetteCustomisation?new Thickness(-18,0,0,0):new Thickness(0) };Grid.SetRow(_exoResizeControls,1);Grid.SetColumn(_exoResizeControls,1);_exoContent.Children.Add(_exoResizeControls);}
    }
@@ -283,7 +285,7 @@ public partial class MainWindow
    var gridCard=new Border{Style=(Style)FindResource("Card"),Child=gridBody};Grid.SetRow(gridCard,2);_exoContent.Children.Add(gridCard);
    var detail=new StackPanel();
    var heading=new Border{CornerRadius=new CornerRadius(7),Padding=new Thickness(9),Margin=new Thickness(0,0,0,12)};heading.SetResourceReference(Border.BackgroundProperty,"AccentSurface");var headerText=new TextBlock{Text="╱╱  "+UiStrings.Get("exosuit.slot_details"),FontSize=17,FontWeight=FontWeights.SemiBold};headerText.SetResourceReference(TextBlock.ForegroundProperty,"OnAccent");heading.Child=headerText;detail.Children.Add(heading);
-   _exoIcon=new Image{Height=88,Margin=new Thickness(0,0,0,9)};detail.Children.Add(_exoIcon);_exoName=new TextBlock{Text="Select an inventory slot",FontSize=16,FontWeight=FontWeights.SemiBold,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(3,0,3,14)};detail.Children.Add(_exoName);
+   _exoIcon=new Image{Height=88,Margin=new Thickness(0,0,0,9)};detail.Children.Add(_exoIcon);_exoName=new TextBlock{Text=UiStrings.Get("inventory.select_slot"),FontSize=16,FontWeight=FontWeights.SemiBold,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(3,0,3,14)};detail.Children.Add(_exoName);
    TextBox Field(string label){detail.Children.Add(new TextBlock{Text=label,Style=(Style)FindResource("Label")});var box=new TextBox();detail.Children.Add(box);return box;}
    _exoAmount=Field("Amount");_exoMaximum=Field("Maximum");_exoDamage=Field("Damage (0–1)");
    var apply=new Button{Content="Apply Changes",Style=(Style)FindResource("Primary"),Margin=new Thickness(3,16,3,3),IsEnabled=false};_exoApplyButton=apply;apply.Click+=(_,_)=>{if(CommitExosuitPage()){RenderExosuitInventory();Status.Text=UiStrings.LocalizeText("Slot changes applied in memory. Press Save to keep them.");}};detail.Children.Add(apply);
@@ -520,7 +522,7 @@ public partial class MainWindow
    _exoTiles.Children.Add(button);
   }
   if(previous!=null && ReferenceEquals(previous.Inventory,inventory) && items.FirstOrDefault(x=>x.X==previous.X && x.Y==previous.Y) is {} retained)SelectExosuitSlot(retained);
-  else{_exoSelected=null;_exoName!.Text="Select an inventory slot";_exoIcon!.Source=null;_exoAmount!.Text=_exoMaximum!.Text=_exoDamage!.Text="";if(_exoApplyButton!=null)_exoApplyButton.IsEnabled=false;}
+  else{_exoSelected=null;_exoName!.Text=UiStrings.Get("inventory.select_slot");_exoIcon!.Source=null;_exoAmount!.Text=_exoMaximum!.Text=_exoDamage!.Text="";if(_exoApplyButton!=null)_exoApplyButton.IsEnabled=false;}
  }
  void SelectExosuitSlot(SlotView slot)
  {

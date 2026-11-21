@@ -300,7 +300,7 @@ internal sealed partial class DomainPageView
         if (!SpaceStationLogic.TryGetPackedData(data, "PackedData0", out ulong packed0, out bool hex0)
             || !SpaceStationLogic.TryGetPackedData(data, "PackedData1", out ulong packed1, out bool hex1))
         {
-            parent.Children.Add(new TextBlock { Text = "Both packed discovery values are required to edit the POI slots.", Margin = new Thickness(3, 8, 3, 3), TextWrapping = TextWrapping.Wrap });
+            parent.Children.Add(new TextBlock { Text = UiStrings.Get("ui.visited.packed_required"), Margin = new Thickness(3, 8, 3, 3), TextWrapping = TextWrapping.Wrap });
             return;
         }
 
@@ -319,8 +319,8 @@ internal sealed partial class DomainPageView
         var hint = new TextBlock
         {
             Text = inferred is null
-                ? "POI types could not be inferred from these values. Discovery levels are still editable by slot."
-                : "Each slot is one generated space POI. Labels show the types inferred from the packed discovery values.",
+                ? UiStrings.Get("ui.visited.hint_infer")
+                : UiStrings.Get("ui.visited.hint_slots"),
             TextWrapping = TextWrapping.Wrap,
             Margin = new Thickness(3, 8, 3, 6)
         };
@@ -333,8 +333,8 @@ internal sealed partial class DomainPageView
         {
             string label = token switch
             {
-                SpacePoiSlotTokens.Unknown => "Unidentified POI",
-                SpacePoiSlotTokens.Unallocated => "Unallocated",
+                SpacePoiSlotTokens.Unknown => UiStrings.Get("ui.visited.unknown_poi"),
+                SpacePoiSlotTokens.Unallocated => UiStrings.Get("ui.visited.unallocated"),
                 _ => rules.FirstOrDefault(rule => rule.Type == token)?.DisplayName ?? token
             };
             var group = grouped.FirstOrDefault(item => item.Token == token);

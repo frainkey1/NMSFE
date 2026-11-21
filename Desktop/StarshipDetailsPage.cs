@@ -16,6 +16,7 @@ public partial class MainWindow
 {
     TextBox? _shipName, _shipSeed, _shipDamage, _shipShield, _shipDrive, _shipManeuver;
     TextBlock? _shipPrimaryLabel;
+    Button? _shipPrimaryButton;
     ComboBox? _shipType, _shipClass;
     CheckBox? _shipOldColour;
     Action? _refreshShipList;
@@ -27,6 +28,12 @@ public partial class MainWindow
     {
         if (_shipPrimaryLabel != null)
             _shipPrimaryLabel.Text = UiStrings.Format("editor.primary_ship_label", PrimaryShipIndex() + 1);
+    }
+
+    void RefreshShipPrimaryButton()
+    {
+        if (_shipPrimaryButton != null)
+            _shipPrimaryButton.IsEnabled = !_showArchive && _selectedShip is { Occupied: true } ship && ship.Index != PrimaryShipIndex();
     }
 
     UIElement BuildStarshipDetails()
@@ -63,9 +70,9 @@ public partial class MainWindow
         root.Children.Add(grid);
         var actions=new StackPanel{Margin=new Thickness(0,4,0,0)};
         var primaryActions=new WrapPanel();var managementActions=new WrapPanel();
-        void AddAction(WrapPanel host,string text,Action action,bool primary=false){var b=new Button{Content=text,Margin=new Thickness(2)};if(primary)b.Style=(Style)FindResource("Primary");b.Click+=(_,_)=>action();host.Children.Add(b);}
+        Button AddAction(WrapPanel host,string text,Action action,bool primary=false){var b=new Button{Content=text,Margin=new Thickness(2)};if(primary)b.Style=(Style)FindResource("Primary");b.Click+=(_,_)=>action();host.Children.Add(b);return b;}
         AddAction(primaryActions,"Apply Ship Changes",()=>{if(CommitShipDetails()){RefreshShipDetails();_refreshShipList?.Invoke();}},true);
-        AddAction(primaryActions,"Make Primary",MakeShipPrimary); AddAction(primaryActions,"Delete",DeleteShip); AddAction(primaryActions,"Export JSON",ExportShip); AddAction(primaryActions,"Import JSON",ImportShip);
+        _shipPrimaryButton=AddAction(primaryActions,"Make Primary",MakeShipPrimary); AddAction(primaryActions,"Delete",DeleteShip); AddAction(primaryActions,"Export JSON",ExportShip); AddAction(primaryActions,"Import JSON",ImportShip);
         AddAction(managementActions,"Move to Archive",MoveShipToArchive); AddAction(managementActions,"Import from Archive",ImportShipFromArchive);
         if(_inventoryPage!=MainPageCatalog.Corvettes)AddAction(managementActions,"Customisation JSON",OpenShipCustomisation);
         actions.Children.Add(primaryActions);actions.Children.Add(managementActions);
@@ -80,7 +87,7 @@ public partial class MainWindow
         {
             _shipName.Text=_shipSeed!.Text=_shipDamage!.Text=_shipShield!.Text=_shipDrive!.Text=_shipManeuver!.Text="";
             _shipType!.SelectedIndex=_shipClass!.SelectedIndex=-1;_shipOldColour!.IsChecked=false;
-            _shipDetailsChanged=false;_shipDetailsLoading=false;return;
+            _shipDetailsChanged=false;_shipDetailsLoading=false;RefreshShipPrimaryButton();return;
         }
         var d=StarshipLogic.LoadShipData(_selectedShip.Ownership,_session.Player,_selectedShip.Index);
         _shipName.Text=d.Name;var typeItems=_shipType!.ItemsSource as IEnumerable<StarshipLogic.ShipTypeItem>;var typeIndex=typeItems?.ToList().FindIndex(x=>x.InternalName==d.ShipTypeName)??-1;_shipType.SelectedIndex=typeIndex;
@@ -88,7 +95,7 @@ public partial class MainWindow
         static string StatText(string? text,double value)=>string.IsNullOrWhiteSpace(text)?value.ToString("G",CultureInfo.InvariantCulture):text;
         _shipDamage!.Text=StatText(d.DamageText,d.Damage);_shipShield!.Text=StatText(d.ShieldText,d.Shield);_shipDrive!.Text=StatText(d.HyperdriveText,d.Hyperdrive);_shipManeuver!.Text=StatText(d.ManeuverText,d.Maneuver);_shipOldColour!.IsChecked=d.UseOldColours;
         bool enabled=!_showArchive;foreach(var c in new Control[]{_shipName,_shipType,_shipClass,_shipSeed,_shipDamage,_shipShield,_shipDrive,_shipManeuver,_shipOldColour})c.IsEnabled=enabled;
-        _shipDetailsChanged=false;_shipDetailsLoading=false;
+        _shipDetailsChanged=false;_shipDetailsLoading=false;RefreshShipPrimaryButton();
     }
 
     bool CommitShipDetails()
@@ -114,7 +121,7 @@ public partial class MainWindow
     }
 
     int PrimaryShipIndex(){try{return _session.Player?.GetInt("PrimaryShip")??0;}catch{return 0;}}
-    void MakeShipPrimary(){if(_selectedShip==null||_showArchive||!CommitShipDetails())return;RawNumberGuard.SetInt(_session.Player,"PrimaryShip",_selectedShip.Index);_session.MarkDirty();RefreshPrimaryShipLabel();Status.Text=UiStrings.LocalizeText("Primary ship changed in memory.");}
+    void MakeShipPrimary(){if(_selectedShip is not { Occupied:true } ship||_showArchive||!CommitShipDetails())return;RawNumberGuard.SetInt(_session.Player,"PrimaryShip",ship.Index);_session.MarkDirty();RefreshPrimaryShipLabel();RefreshShipPrimaryButton();Status.Text=UiStrings.LocalizeText("Primary ship changed in memory.");}
     void DeleteShip()
     {
         if(_selectedShip==null||_showArchive||!CommitShipDetails())return;

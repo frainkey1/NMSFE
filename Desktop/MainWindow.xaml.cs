@@ -49,6 +49,7 @@ public partial class MainWindow:Window
   bool dark=File.Exists(SettingsPath)&&File.ReadAllText(SettingsPath)=="Dark";Themes.Apply(dark);InitializeComponent();
   _session=session;
   InitializeHeaderMenus();
+  SlotName.Text=UiStrings.Get("inventory.select_slot");
   Width=Math.Min(1240,SystemParameters.WorkArea.Width-30);Height=Math.Min(800,SystemParameters.WorkArea.Height-35);
   Left=SystemParameters.WorkArea.Left+(SystemParameters.WorkArea.Width-Width)/2;Top=SystemParameters.WorkArea.Top+(SystemParameters.WorkArea.Height-Height)/2;
   _migrationPlaceholder=MigrationPage.Child;
@@ -109,7 +110,7 @@ public partial class MainWindow:Window
  {
   _activeTool=-1;_selectedSlot=null;Slots.ItemsSource=null;DetailIcon.Source=null;
   ToolName.Text=ToolSeed.Text=Damage.Text=Mining.Text=Scan.Text=SlotAmount.Text=SlotMaximum.Text=SlotDamage.Text="";
-  ToolType.SelectedIndex=ToolClass.SelectedIndex=-1;SlotName.Text="Select an inventory slot";SlotCategory.Text="—";
+  ToolType.SelectedIndex=ToolClass.SelectedIndex=-1;SlotName.Text=UiStrings.Get("inventory.select_slot");SlotCategory.Text="—";
   PrimaryLabel.Text="No owned multi-tools";EmptyHint.Text="This save contains no owned multi-tools supported by this milestone.";EmptyHint.Visibility=Visibility.Visible;
  }
  ToolDraft Draft()=>new(ToolName.Text,ToolType.SelectedIndex,ToolClass.SelectedIndex,ToolSeed.Text,Damage.Text,Mining.Text,Scan.Text);
@@ -151,7 +152,7 @@ public partial class MainWindow:Window
   Slots.ItemsSource=items;Slots.Height=height*72;Slots.ApplyTemplate();
   if(FindVisual<System.Windows.Controls.Primitives.UniformGrid>(Slots) is {} grid)grid.Columns=width;
   EmptyHint.Visibility=items.Any(s=>s.Data!=null)?Visibility.Collapsed:Visibility.Visible;
-  _selectedSlot=null;SlotName.Text="Select an inventory slot";DetailIcon.Source=null;SlotCategory.Text="—";SlotAmount.Text=SlotMaximum.Text=SlotDamage.Text="";
+  _selectedSlot=null;SlotName.Text=UiStrings.Get("inventory.select_slot");DetailIcon.Source=null;SlotCategory.Text="—";SlotAmount.Text=SlotMaximum.Text=SlotDamage.Text="";
   ToolItemPicker.Content=BuildItemPicker(null,ToolInventoryKind,CommitDraft,RenderInventory);
   if(previousSelection!=null && ReferenceEquals(previousSelection.Inventory,inventory) && items.FirstOrDefault(x=>x.X==previousSelection.X && x.Y==previousSelection.Y) is {} retained)SelectSlot(new Button{Tag=retained},new RoutedEventArgs());
  }
@@ -231,7 +232,7 @@ public partial class MainWindow:Window
    if(ToolSelector.SelectedItem is ToolEntry tool)ShowTool(tool.Index);
    _viewRevision=_session.DocumentRevision;
   }
-  return CommitPlayerPage() && CommitShipDetails() && CommitExosuitPage() && CommitDomainPages() && (_statsPage?.Commit()??true) && CommitDraft();
+  return CommitPlayerPage() && CommitShipDetails() && CommitExosuitPage() && CommitDomainPages() && (_statsPage?.Commit()??true) && (_selectedPage!=MainPageCatalog.MultiTools||CommitDraft());
  }
  void Navigate(object sender,RoutedEventArgs e)
  {

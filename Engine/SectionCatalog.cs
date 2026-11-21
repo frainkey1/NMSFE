@@ -244,11 +244,11 @@ public static class SectionCatalog
 
         object? address = worker.Get("BaseUA");
         if (address is null || string.IsNullOrWhiteSpace(SaveSession.FieldText(address)))
-            return "Not assigned";
+            return UiStrings.Get("base.worker_location_not_assigned");
 
         var bases = playerState?.GetArray("PersistentPlayerBases");
         if (bases is null)
-            return "Unresolved location";
+            return UiStrings.Get("base.worker_location_unresolved");
 
         string addressText = SaveSession.FieldText(address);
         var candidates = Enumerable.Range(0, bases.Length)
@@ -262,7 +262,7 @@ public static class SectionCatalog
             .ToList();
 
         if (candidates.Count == 0)
-            return "Unresolved location";
+            return UiStrings.Get("base.worker_location_unresolved");
 
         if (candidates.Count > 1 && worker.GetArray("BaseOffset") is { Length: >= 3 } offset)
         {
@@ -280,7 +280,7 @@ public static class SectionCatalog
         }
 
         if (candidates.Count != 1)
-            return $"Ambiguous location · {candidates.Count} matching bases";
+            return UiStrings.Format("base.worker_location_ambiguous", candidates.Count);
 
         return BaseCaption(playerState, candidates[0].Data, candidates[0].Index);
     }
@@ -297,7 +297,7 @@ public static class SectionCatalog
         }
         else if (value is bool boolean) return boolean ? UiStrings.Get("common.yes") : UiStrings.Get("common.no");
         else if (value != null && value is not JsonArray) return value.ToString() ?? $"Entry {index + 1}";
-        return fallback ?? $"Entry {index + 1}";
+        return fallback ?? UiStrings.Format("base.entry_n", index + 1);
     }
 }
 

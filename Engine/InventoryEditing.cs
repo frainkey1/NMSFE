@@ -248,6 +248,15 @@ public sealed partial class SaveSession
     && entry.GetObject("Index") is {} index && repaired.Contains((index.GetInt("X"), index.GetInt("Y"))));
  }
 
+ public (bool Success, int StacksPlaced, int SlotsAvailable, int SlotsFreed) SortAllStorage(bool byType)
+ {
+  var player = Player ?? throw new InvalidOperationException("Open a player save first.");
+  var result = InventoryBulkActions.MergeAndSortChestsIndividually(player, Items,
+   byType ? ChestSortMode.Type : ChestSortMode.Name, 0);
+  if (result.Success) Dirty = true;
+  return (result.Success, result.StacksPlaced, result.SlotsAvailable, result.SlotsFreed);
+ }
+
  public void StackInventoryItem(JsonObject source, string destination, int x, int y, ISet<(int,int)> pinned)
  {
   var player = Player ?? throw new InvalidOperationException("Open a player save first.");

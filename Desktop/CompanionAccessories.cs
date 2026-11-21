@@ -15,7 +15,7 @@ internal sealed partial class DomainPageView
     {
         if (pet == null || !_session.LoadAccessoryCatalog())
         {
-            AddAccessoryMessage("The companion accessory catalog could not be loaded.");
+            AddAccessoryMessage(UiStrings.Get("companion.accessory_catalog_unavailable"));
             return;
         }
 
@@ -26,7 +26,7 @@ internal sealed partial class DomainPageView
         var slots = _session.Player?.GetArray("PetAccessoryCustomisation")?.GetObject(index)?.GetArray("Data");
         if (layout.Length == 0)
         {
-            AddAccessoryMessage("This companion has no supported accessory slots.");
+            AddAccessoryMessage(UiStrings.Get("companion.no_accessory_slots"));
             return;
         }
 
@@ -40,7 +40,7 @@ internal sealed partial class DomainPageView
             var data = slot?.GetObject("CustomData");
             if (data?.GetArray("DescriptorGroups") is not { } groups)
             {
-                card.Children.Add(new TextBlock { Text = "This accessory slot is missing from the save." });
+                card.Children.Add(new TextBlock { Text = UiStrings.Get("companion.accessory_slot_missing") });
                 continue;
             }
 
@@ -64,7 +64,7 @@ internal sealed partial class DomainPageView
                 try
                 {
                     _session.EquipCompanionAccessory(slots!, slotIndex, accessory);
-                    _owner.PageStatus("Accessory updated in memory. Press Save to keep the changes.");
+                    _owner.PageStatus(UiStrings.Get("companion.accessory_updated"));
                     Select(_entry!);
                 }
                 catch (Exception ex) { _owner.PageError(ex); }
@@ -98,7 +98,7 @@ internal sealed partial class DomainPageView
             var picker = new ComboBox
             {
                 ItemsSource = palette, DisplayMemberPath = "Name",
-                ToolTip = i == 0 ? "Primary colour" : "Alternate colour"
+                ToolTip = i == 0 ? UiStrings.Get("companion.accessory_primary_colour") : UiStrings.Get("companion.accessory_alternate_colour")
             };
             card.Children.Add(new TextBlock { Text = (string)picker.ToolTip, Style = PageStyle("Label") });
             card.Children.Add(picker);
@@ -111,7 +111,7 @@ internal sealed partial class DomainPageView
                     _session.ApplyFields(Enumerable.Range(0, 4).Select(channel =>
                         new FieldEdit(rgba, channel, values[channel].ToString(System.Globalization.CultureInfo.InvariantCulture),
                             SaveSession.FieldText(rgba.Get(channel)))), false, null);
-                    _owner.PageStatus("Accessory colour updated in memory. Press Save to keep the changes.");
+                    _owner.PageStatus(UiStrings.Get("companion.accessory_colour_updated"));
                 }
                 catch (Exception ex) { _owner.PageError(ex); }
             };

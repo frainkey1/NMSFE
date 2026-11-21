@@ -43,7 +43,7 @@ internal sealed partial class DomainPageView
   headingText.SetResourceReference(TextBlock.ForegroundProperty,"OnAccent");heading.Child=headingText;detail.Children.Add(heading);
   var icon=new Image{Height=88,Margin=new Thickness(0,0,0,9)};
   detail.Children.Add(icon);
-  var itemName=new TextBlock{Text="Select an inventory slot",FontSize=16,FontWeight=FontWeights.SemiBold,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(3,0,3,12)};
+  var itemName=new TextBlock{Text=UiStrings.Get("inventory.select_slot"),FontSize=16,FontWeight=FontWeights.SemiBold,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(3,0,3,12)};
   detail.Children.Add(itemName);
   TextBox DetailField(string label){detail.Children.Add(new TextBlock{Text=label,Style=PageStyle("Label")});var box=new TextBox();detail.Children.Add(box);return box;}
   var amount=_freighterAmount=DetailField("Amount");var maximum=_freighterMaximum=DetailField("Maximum");var damage=_freighterDamage=DetailField("Damage (0–1)");
@@ -68,7 +68,7 @@ internal sealed partial class DomainPageView
   {
    if(commit&&!CommitChanges())return;
    _selectedFreighterSlot=slot;
-   itemName.Text=slot?.Name??"Select an inventory slot";
+   itemName.Text=slot?.Name??UiStrings.Get("inventory.select_slot");
    icon.Source=slot?.Icon;icon.Visibility=icon.Source==null?Visibility.Collapsed:Visibility.Visible;
    var data=slot?.Data;
    amount.Text=data?.GetInt("Amount").ToString(CultureInfo.InvariantCulture)??"";

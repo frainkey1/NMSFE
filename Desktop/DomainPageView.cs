@@ -323,10 +323,10 @@ internal sealed partial class DomainPageView:Grid
   };
   var inspector=new StackPanel { Width=230 };
   var details=new StackPanel();
-  details.Children.Add(new TextBlock {Text="Slot Details",Style=PageStyle("Heading"),FontSize=17});
+  details.Children.Add(new TextBlock {Text=UiStrings.Get("inventory.slot_details"),Style=PageStyle("Heading"),FontSize=17});
   var icon=new Image {Height=62,Visibility=Visibility.Collapsed};
-  var name=new TextBlock {Text="Select an inventory slot",TextWrapping=TextWrapping.Wrap};
-  var edit=new Button {Content="Edit slot details",IsEnabled=false};
+  var name=new TextBlock {Text=UiStrings.Get("inventory.select_slot"),TextWrapping=TextWrapping.Wrap};
+  var edit=new Button {Content=UiStrings.Get("inventory.edit_slot_details"),IsEnabled=false};
   details.Children.Add(icon);details.Children.Add(name);details.Children.Add(edit);
   inspector.Children.Add(new Border {Style=PageStyle("Card"),Child=details});
   var picker=new ContentControl();inspector.Children.Add(picker);
@@ -341,7 +341,7 @@ internal sealed partial class DomainPageView:Grid
   {
    selected=item;
    _selectedInventorySlot=item==null?null:(inventory,item.X,item.Y);
-   name.Text=item?.Name??"Select an inventory slot";
+   name.Text=item?.Name??UiStrings.Get("inventory.select_slot");
    icon.Source=item?.Icon;icon.Visibility=icon.Source==null?Visibility.Collapsed:Visibility.Visible;
    edit.IsEnabled=item?.Data!=null;
    picker.Content=_owner.BuildItemPicker(item,kind,Commit,Refresh);
@@ -358,8 +358,35 @@ internal sealed partial class DomainPageView:Grid
   var layout=new DockPanel();
   DockPanel.SetDock(inspector,Dock.Right);layout.Children.Add(inspector);
   layout.Children.Add(new ScrollViewer {Content=tiles,HorizontalScrollBarVisibility=ScrollBarVisibility.Auto,VerticalScrollBarVisibility=ScrollBarVisibility.Disabled});
-  _form.Children.Add(new TextBlock{Text=UiStrings.Format("domain.slots_count",width,height),Margin=new Thickness(5,9,5,9)});_form.Children.Add(layout);
-  var settings=new Button{Content="Inventory settings and base stats",HorizontalAlignment=HorizontalAlignment.Left};settings.Click+=(_,_)=>
+  _form.Children.Add(new TextBlock{Text=UiStrings.Format("domain.slots_count",width,height),Margin=new Thickness(5,9,5,9)});
+  bool showFossilNote=!technology && _section.Path is not ("FishPlatformInventory" or "FishBaitBoxInventory" or "FoodUnitInventory" or "CookingIngredientsInventory");
+  if(showFossilNote)_form.Children.Add(new TextBlock{Text=UiStrings.Get("inventory.fossil_pcg_note"),Margin=new Thickness(5,0,5,8),TextWrapping=TextWrapping.Wrap});
+  if(_page==MainPageCatalog.Bases && _section.Name.StartsWith("Storage container ",StringComparison.Ordinal))
+  {
+   var sortButtons=new StackPanel{Orientation=Orientation.Horizontal,Margin=new Thickness(0,2,0,6)};
+   var sortType=new Button{Content=UiStrings.Get("base.all_chests_sort_type"),ToolTip=UiStrings.Get("base.all_chests_info"),Margin=new Thickness(2)};
+   var sortName=new Button{Content=UiStrings.Get("base.all_chests_sort_name"),ToolTip=UiStrings.Get("base.all_chests_info"),Margin=new Thickness(2)};
+   void Sort(bool byType)
+   {
+    if(!Commit())return;
+    try
+    {
+     var result=_session.SortAllStorage(byType);
+     if(!result.Success)
+     {
+      _owner.PageError(new InvalidOperationException(UiStrings.Format("base.all_chests_result_insufficient",result.StacksPlaced,result.SlotsAvailable)));
+      return;
+     }
+     Refresh();
+     _owner.PageStatus(UiStrings.Format("base.all_chests_result_success",result.StacksPlaced,result.SlotsFreed));
+    }
+    catch(Exception ex){_owner.PageError(ex);}
+   }
+   sortType.Click+=(_,_)=>Sort(true);sortName.Click+=(_,_)=>Sort(false);
+   sortButtons.Children.Add(sortType);sortButtons.Children.Add(sortName);_form.Children.Add(sortButtons);
+  }
+  _form.Children.Add(layout);
+  var settings=new Button{Content=UiStrings.Get("editor.inventory_settings_base_stats"),HorizontalAlignment=HorizontalAlignment.Left};settings.Click+=(_,_)=>
   {
    if(!Commit())return;
    _history.Push((_node,_nodeParent,_nodeKey,_recordTitle.Text,_currentJsonSegments));
@@ -648,5 +675,11 @@ internal sealed partial class DomainPageView:Grid
   catch(Exception ex){_owner.PageError(ex);return false;}
  }
  internal void Repaint(){if(_catalogueView.Content==null && !HasPending)ShowNode(_node,_nodeParent,_nodeKey,_recordTitle.Text);}
- static string Readable(string name)=>System.Text.RegularExpressions.Regex.Replace(name,"([a-z0-9])([A-Z])","$1 $2").Replace('_',' ');
+ static string Readable(string name)=>name switch
+ {
+  "FreighterBase" => UiStrings.Get("base.worker_freighter_base"),
+  "BaseUA" => UiStrings.Get("base.worker_base_ua"),
+  "IsHired" or "HiredWorker" => UiStrings.Get("base.worker_hired"),
+  _ => System.Text.RegularExpressions.Regex.Replace(name,"([a-z0-9])([A-Z])","$1 $2").Replace('_',' ')
+ };
 }

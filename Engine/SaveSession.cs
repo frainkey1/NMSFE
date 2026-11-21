@@ -25,7 +25,7 @@ public sealed partial class SaveSession
   var mapper=new JsonNameMapper();mapper.Load(Path.Combine(resources,"map","mapping.json"));JsonParser.SetDefaultMapper(mapper);
   UiStrings.SetDirectory(Path.Combine(resources,"ui","lang"));UiStrings.Load("en");
  }
- public void LoadDatabase(){Items.LoadItemsFromJsonDirectory(Path.Combine(ResourceRoot,"json"));SettlementDatabase.LoadFromFile(Path.Combine(ResourceRoot,"json","Settlement Perks.json"));RewardDatabase.LoadFromJsonDirectory(Path.Combine(ResourceRoot,"json"));}
+ public void LoadDatabase(){Items.LoadItemsFromJsonDirectory(Path.Combine(ResourceRoot,"json"));SettlementDatabase.LoadFromFile(Path.Combine(ResourceRoot,"json","Settlement Perks.json"));RewardDatabase.LoadFromJsonDirectory(Path.Combine(ResourceRoot,"json"));FrigateTraitDatabase.LoadFromFile(Path.Combine(ResourceRoot,"json","Frigate Traits.json"));SpacePoiTableDatabase.LoadFromFile(Path.Combine(ResourceRoot,"json","Space POI.json"));}
  public void SetGameLanguage(string? languageTag)
  {
   GameLocalisation.SetLangDirectory(Path.Combine(ResourceRoot,"json","lang"));
@@ -33,6 +33,8 @@ public sealed partial class SaveSession
   Items.ApplyLocalisation(GameLocalisation);
   SettlementDatabase.ApplyLocalisation(GameLocalisation);
   RewardDatabase.ApplyLocalisation(GameLocalisation);
+  FrigateTraitDatabase.ApplyLocalisation(GameLocalisation);
+  SpacePoiTableDatabase.ApplyLocalisation(GameLocalisation);
  }
  public void Load(string path)
  {
@@ -59,7 +61,8 @@ public sealed partial class SaveSession
  {
   var old=ReadTool(index);if(draft==old)return;
   var seed=SeedHelper.NormalizeSeed(draft.Seed)??throw new ArgumentException("Enter a valid hexadecimal seed, up to 16 digits.");
-  if(draft.TypeIndex<0 || draft.TypeIndex>=MultitoolLogic.ToolTypes.Length || draft.ClassIndex<0 || draft.ClassIndex>=4)throw new ArgumentException("Choose a valid type and class.");
+  bool typeChanged=draft.TypeIndex!=old.TypeIndex, classChanged=draft.ClassIndex!=old.ClassIndex;
+  if(typeChanged && (draft.TypeIndex<0 || draft.TypeIndex>=MultitoolLogic.ToolTypes.Length) || classChanged && (draft.ClassIndex<0 || draft.ClassIndex>=4))throw new ArgumentException("Choose a valid type and class.");
   double Parse(string text){if(!double.TryParse(text,NumberStyles.Float,CultureInfo.InvariantCulture,out var n)||!double.IsFinite(n)||n<0)throw new ArgumentException("Base stats must be finite, non-negative numbers.");return n;}
   var values=new MultitoolLogic.ToolSaveValues{Name=draft.Name,TypeIndex=draft.TypeIndex==old.TypeIndex?-1:draft.TypeIndex,ClassIndex=draft.ClassIndex,OriginalClassIndex=old.ClassIndex,Seed=seed,Damage=Parse(draft.Damage),Mining=Parse(draft.Mining),Scan=Parse(draft.Scan),DamageText=draft.Damage,MiningText=draft.Mining,ScanText=draft.Scan,RawStatValues=new(){["^WEAPON_DAMAGE"]=Parse(old.Damage),["^WEAPON_MINING"]=Parse(old.Mining),["^WEAPON_SCAN"]=Parse(old.Scan)}};
   if(draft.TypeIndex!=old.TypeIndex)values.IsLargeIndex=MultitoolLogic.GetCanonicalIsLargeIndex(MultitoolLogic.ToolTypes[draft.TypeIndex].Name);

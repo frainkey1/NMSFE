@@ -103,9 +103,22 @@ public partial class MainWindow
  }
  void RefreshPlayerLocation()
  {
-  if(_locationFields==null)return;_locationFields.Children.Clear();foreach(var pair in _session.ReadPlayerLocationInfo())PlayerReadOnly(_locationFields,pair.Key,pair.Value);
+  if(_locationFields==null)return;_locationFields.Children.Clear();foreach(var pair in _session.ReadPlayerLocationInfo())PlayerReadOnly(_locationFields,PlayerLocationLabel(pair.Key),pair.Value);
   if(_currentGlyphs!=null){_currentGlyphs.Children.Clear();foreach(char hex in _session.PlayerPortalCode)_currentGlyphs.Children.Add(PlayerGlyph(hex));}
  }
+ static string PlayerLocationLabel(string label)=>label switch
+ {
+  "Galaxy"=>UiStrings.Get("player.galaxy"),
+  "Portal code (hex)"=>UiStrings.Get("player.portal_code_hex"),
+  "Portal code (decimal)"=>UiStrings.Get("player.portal_code_dec"),
+  "Signal booster"=>UiStrings.Get("player.signal_booster"),
+  "Distance to center"=>UiStrings.Get("player.distance_to_center"),
+  "Jumps to center"=>UiStrings.Get("player.jumps_to_center"),
+  "Freighter in system"=>UiStrings.Get("player.freighter_in_system"),
+  "Nexus in system"=>UiStrings.Get("player.nexus_in_system"),
+  "Planets in system"=>UiStrings.Get("player.planets_in_system"),
+  _=>UiStrings.LocalizeText(label)
+ };
  void SetPlayerCoordinateDraft(PlayerCoordinates c){if(_coordinateFields.Count!=6)throw new InvalidOperationException("No editable coordinate address.");var texts=CoordinateTexts(c);for(int i=0;i<6;i++)_coordinateFields[i].Text=texts[i];}
  bool CommitPlayerGeneral(bool validateOnly=false)
  {

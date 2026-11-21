@@ -21,6 +21,7 @@ public partial class MainWindow
     readonly string WatchSettingsPath = Path.Combine(AppContext.BaseDirectory, "save-watch.txt");
     readonly List<MenuItem> _saveRequiredItems = [];
     readonly List<MenuItem> _noConsoleItems = [];
+    readonly List<MenuItem> _languageMenuItems = [];
     FileSystemWatcher? _saveWatcher;
     DispatcherTimer? _saveWatchTimer;
     string _languageTag = DefaultLanguageTag;
@@ -78,6 +79,7 @@ public partial class MainWindow
         HeaderMenus.Items.Clear();
         _saveRequiredItems.Clear();
         _noConsoleItems.Clear();
+        _languageMenuItems.Clear();
 
         var file = TopMenu("menu.file");
         AddAction(file, "menu.file.open_directory", OpenSaveDirectory, shortcut: "Ctrl+O");
@@ -117,19 +119,21 @@ public partial class MainWindow
             var item = SubMenu(tag);
             item.IsCheckable = true;
             item.IsChecked = string.Equals(tag, _languageTag, StringComparison.OrdinalIgnoreCase);
+            item.Tag = tag;
             item.Click += (_, _) => SelectLanguage(tag);
             language.Items.Add(item);
+            _languageMenuItems.Add(item);
         }
         HeaderMenus.Items.Add(language);
 
         var help = TopMenu("menu.help");
-        AddHelpPlaceholder(help, "menu.help.github");
-        AddHelpPlaceholder(help, "menu.help.user_guide");
+        AddHelpLink(help, "menu.help.github", "https://github.com/frainkey1");
+        AddAction(help, "menu.help.user_guide", ShowUserGuide);
         help.Items.Add(new Separator());
-        AddHelpPlaceholder(help, "menu.help.sponsor");
+        AddHelpLink(help, "menu.help.sponsor", "https://www.paypal.com/donate/?hosted_button_id=RWT3F8XL7TTPE");
         help.Items.Add(new Separator());
-        AddHelpPlaceholder(help, "menu.help.check_updates");
-        AddHelpPlaceholder(help, "menu.help.release_notes");
+        AddHelpLink(help, "menu.help.check_updates", "https://github.com/frainkey1/NMSFE");
+        AddHelpLink(help, "menu.help.release_notes", "https://github.com/frainkey1/NMSFE/releases");
         help.Items.Add(new Separator());
         AddAction(help, "menu.help.about", ShowAbout);
         HeaderMenus.Items.Add(help);
@@ -251,12 +255,42 @@ public partial class MainWindow
         if (noConsole) _noConsoleItems.Add(item);
     }
 
-    void AddHelpPlaceholder(MenuItem parent, string labelKey)
+    void AddHelpLink(MenuItem parent, string labelKey, string url)
     {
         var item = SubMenu(UiStrings.Get(labelKey));
-        item.IsEnabled = false;
-        item.ToolTip = "This destination will be added when project information is provided.";
+        item.ToolTip = url;
+        item.Click += (_, _) =>
+        {
+            try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true }); }
+            catch (Exception ex) { PageError(ex); }
+        };
         parent.Items.Add(item);
+    }
+
+    void ShowUserGuide()
+    {
+        var content = new StackPanel { Margin = new Thickness(18) };
+        void AddSection(string title, string body)
+        {
+            content.Children.Add(new TextBlock { Text = title, Style = (Style)FindResource("Heading"), Margin = new Thickness(0, 8, 0, 3) });
+            content.Children.Add(new TextBlock { Text = body, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 8) });
+        }
+        AddSection("Open a save", "Choose a save slot or use Open to select a supported save file, then Load it. The editor works on the loaded copy until you choose Save.");
+        AddSection("Find your data", "Use the left navigation to open a page. Inventory pages have Cargo and Technology tabs; select a slot to view or edit its details. Use the search and section tabs on pages that list records.");
+        AddSection("Edit safely", "Changes stay in memory until you save. Save writes the edited save and keeps the editor’s backup and validation safeguards. If the game changes the file while it is open, reload before saving your edits.");
+        AddSection("Use the tools", "The Tools menu includes JSON import and export and bulk actions for charging technology, refilling stacks, and repairing damaged slots or technology.");
+        AddSection("Change the view", "Use Language to choose a supported interface language and Light / Dark to switch the theme.");
+        AddSection("More help", "Visit the GitHub Page for the project, Check for Updates to see the repository, or open Release Notes for published changes. Use Donate to support development.");
+        var guide = new Window
+        {
+            Owner = this,
+            Title = UiStrings.Get("menu.help.user_guide"),
+            Width = 720,
+            Height = 600,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            Content = new ScrollViewer { Content = content, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }
+        };
+        guide.ShowDialog();
     }
 
     void AddWatchMode(MenuItem parent, string label, string mode)
@@ -273,6 +307,14 @@ public partial class MainWindow
         bool loaded = _session.SourcePath != null;
         foreach (var item in _saveRequiredItems) item.IsEnabled = loaded && !_busy;
         foreach (var item in _noConsoleItems) item.IsEnabled = loaded && _session.ConsolePlatform == null && !_busy;
+        UpdateLanguageMenuState();
+    }
+
+    void UpdateLanguageMenuState()
+    {
+        foreach (var item in _languageMenuItems)
+            item.IsChecked = item.Tag is string tag &&
+                string.Equals(tag, _languageTag, StringComparison.OrdinalIgnoreCase);
     }
 
     void OnWindowPreviewKeyDown(object sender, KeyEventArgs e)
@@ -414,32 +456,51 @@ public partial class MainWindow
 
     void SelectLanguage(string tag)
     {
-        if (_busy || !CommitAllEdits()) return;
-        if (!LocalisationService.SupportedLanguages.Values.Contains(tag, StringComparer.OrdinalIgnoreCase)) return;
+        if (_busy || !CommitAllEdits())
+        {
+            UpdateLanguageMenuState();
+            return;
+        }
+        if (!LocalisationService.SupportedLanguages.Values.Contains(tag, StringComparer.OrdinalIgnoreCase))
+        {
+            UpdateLanguageMenuState();
+            return;
+        }
         _languageTag = tag;
         ApplyLanguagePreference();
+        ClearPlayerPageState();
+        ClearExosuitPageState();
+        ClearDomainPageState();
+        ClearUtilityPageState();
         BuildNavigationV2();
         ToolType.ItemsSource = MultitoolLogic.GetToolTypeItems();
-        if (_selectedPage == MainPageCatalog.MultiTools && _activeTool >= 0)
+        if (_activeTool >= 0)
         {
-            _session.RefreshTools();
-            RefreshSelector();
+            if (_selectedPage == MainPageCatalog.MultiTools)
+            {
+                _session.RefreshTools();
+                RefreshSelector();
+            }
             ShowTool(_activeTool);
         }
         try { File.WriteAllText(LanguageSettingsPath, tag); }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         { Status.Text = UiStrings.Format("ui.dynamic.c97d3f9f2030", ex.Message); }
-        if (_selectedPage == MainPageCatalog.Player) ClearPlayerPageState();
-        else if (_selectedPage is MainPageCatalog.Exosuit or MainPageCatalog.Exocraft or MainPageCatalog.Starships or MainPageCatalog.Corvettes) _exoContent = null;
         RenderSelectedPage();
         Status.Text = UiStrings.Format("status.language_set", tag);
         UiLocalizer.RefreshAll();
+        if (_selectedSlot is null) SlotName.Text = UiStrings.Get("inventory.select_slot");
     }
 
     void ShowAbout()
     {
-        MessageBox.Show(this, UiStrings.LocalizeText("NMSFE — Save File Editor") + "\n\n" + UiStrings.LocalizeText("Project links and author information can be added here later."),
-            UiStrings.LocalizeText("About NMSFE"), MessageBoxButton.OK, MessageBoxImage.Information);
+        string message = string.Join("\n",
+            UiStrings.Get("about.product"),
+            "",
+            UiStrings.Get("about.derived_engine"),
+            UiStrings.Get("about.github") + "https://github.com/frainkey1/NMSFE",
+            UiStrings.Get("about.license") + "https://www.gnu.org/licenses/agpl-3.0.html");
+        MessageBox.Show(this, message, UiStrings.Get("menu.help.about"), MessageBoxButton.OK, MessageBoxImage.Information);
     }
 
     void SetExternalChangeMode(string mode)

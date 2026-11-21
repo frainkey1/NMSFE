@@ -11,7 +11,7 @@ namespace NMSE.Next.Desktop;
 
 public partial class MainWindow
 {
- sealed record ShipInventoryEntry(string Name, JsonObject Ownership, int Index);
+ sealed record ShipInventoryEntry(string Name, JsonObject Ownership, int Index, bool Occupied);
 
  bool _showArchive;
  bool _showShipCustomisation;
@@ -20,6 +20,7 @@ public partial class MainWindow
  bool _showingShipCustomisation => _showingStarships ? _showShipCustomisation : _showCorvetteCustomisation;
  string _shipInventoryKey = "Inventory";
  ShipInventoryEntry? _selectedShip;
+ int _shipSelectionPage=-1;
 
  void ClearShipInventoryState()
  {
@@ -29,6 +30,7 @@ public partial class MainWindow
   _corvetteInventoryKey = "Inventory";
   _shipInventoryKey = "Inventory";
   _selectedShip = null;
+  _shipSelectionPage = -1;
  }
 
  string[] SelectedCorvetteBaseJsonPath()
@@ -77,7 +79,7 @@ public partial class MainWindow
     catch { }
     if (!occupied)
     {
-     entries.Add(new ShipInventoryEntry(UiStrings.Format("companion.empty_slot_number", i + 1), ownership, i));
+     entries.Add(new ShipInventoryEntry(UiStrings.Format("companion.empty_slot_number", i + 1), ownership, i, false));
      continue;
     }
    }
@@ -86,7 +88,7 @@ public partial class MainWindow
    if(isCorvette!=_showingCorvettes)continue;
    var name = archived ? record.GetString("ArchivedName") : ownership.GetString("Name");
    if (string.IsNullOrWhiteSpace(name)) name = SectionCatalog.Caption(ownership, i);
-   entries.Add(new ShipInventoryEntry(UiStrings.LocalizeText(name), ownership, i));
+   entries.Add(new ShipInventoryEntry(UiStrings.LocalizeText(name), ownership, i, true));
   }
   return entries;
  }
@@ -126,11 +128,14 @@ public partial class MainWindow
    owned = GetShipInventoryEntries(false); archived = GetShipInventoryEntries(true);
    var entries = _showArchive ? archived : owned;
    binding = true;
-   _selectedShip = entries.FirstOrDefault(ship => ReferenceEquals(ship.Ownership, _selectedShip?.Ownership))
-    ?? (!_showArchive && !_showingCorvettes ? entries.FirstOrDefault(ship => ship.Index == PrimaryShipIndex()) : null)
+   _selectedShip = (_shipSelectionPage==_inventoryPage ? entries.FirstOrDefault(ship => ReferenceEquals(ship.Ownership, _selectedShip?.Ownership)) : null)
+    ?? (!_showArchive ? entries.FirstOrDefault(ship => ship.Occupied && ship.Index == PrimaryShipIndex()) : null)
+    ?? (!_showArchive ? entries.FirstOrDefault(ship => ship.Occupied && !string.IsNullOrWhiteSpace(ship.Ownership.GetString("Name"))) : null)
+    ?? (!_showArchive ? entries.FirstOrDefault(ship => ship.Occupied) : null)
     ?? entries.FirstOrDefault();
    list.ItemsSource = entries;
    list.SelectedItem = _selectedShip;
+   _shipSelectionPage = _inventoryPage;
    binding = false;
    empty.Visibility = entries.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
    foreach (var (tab, selected) in new[] { (ownedTab, !_showArchive), (archiveTab, _showArchive) })

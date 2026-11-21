@@ -104,7 +104,8 @@ public partial class MainWindow
    });
   }
   Edit("Repair Slot", draft => _session.RepairInventory(draft, kind, Match), occupied);
-  Edit("Repair All Slots", draft => _session.RepairInventory(draft, kind, _ => true));
+  Edit(kind.Technology ? "Fix All Damaged" : "Repair All Slots",
+   draft => _session.RepairInventory(draft, kind, _ => true));
   bool CanFill(JsonObject item) => Int(item, "Amount") >= 0 && Int(item, "MaxAmount") > Int(item, "Amount")
    && (kind.Technology ? _session.Items.GetItem((item.GetString("Id") ?? "").Split('#')[0])?.IsChargeable == true
     : item.GetObject("Type")?.GetString("InventoryType") != "Technology");
@@ -117,6 +118,23 @@ public partial class MainWindow
   }
   Edit(kind.Technology ? "Recharge Slot" : "Fill Stack", draft => Fill(draft, Match), slot.Data is {} data && CanFill(data));
   Edit(kind.Technology ? "Recharge All Technology" : "Refill All Stacks", draft => Fill(draft, _ => true));
+  if (!kind.Technology)
+  {
+   bool IsStack(JsonObject item) => Int(item, "Amount") > 1 && Int(item, "MaxAmount") > 1;
+   void Halve(JsonObject draft, Func<JsonObject, bool> match)
+   {
+    var items = draft.GetArray("Slots")!;
+    for (int i = 0; i < items.Length; i++)
+     if (items.GetObject(i) is {} item && match(item) && IsStack(item))
+      item.Set("Amount", Int(item, "Amount") / 2);
+   }
+   Edit("Half Stack", draft => Halve(draft, Match), occupied && slot.Data is {} stack && IsStack(stack));
+   bool hasFullStacks = inventory.GetArray("Slots") is {} currentSlots
+    && Enumerable.Range(0, currentSlots.Length).Select(currentSlots.GetObject).Any(item => item != null
+     && Int(item, "MaxAmount") > 1 && Int(item, "Amount") == Int(item, "MaxAmount"));
+   Edit("Half All Full Stacks", draft => Halve(draft,
+    item => Int(item, "MaxAmount") > 1 && Int(item, "Amount") == Int(item, "MaxAmount")), hasFullStacks);
+  }
   Separate();
   Add("Copy Item", () =>
   {
@@ -182,12 +200,12 @@ public partial class MainWindow
  {
   var fields = new StackPanel();
   var card = new Border { Style = (Style)FindResource("Card"), Child = fields };
-  fields.Children.Add(new TextBlock { Text = "Item Picker", Style = (Style)FindResource("Heading"), FontSize = 17 });
+  fields.Children.Add(new TextBlock { Text = UiStrings.Get("inventory.item_picker"), Style = (Style)FindResource("Heading"), FontSize = 17 });
   var preview = new Image { Height = 72, Margin = new Thickness(4), Visibility = Visibility.Collapsed, HorizontalAlignment = HorizontalAlignment.Center };
   fields.Children.Add(preview);
   if (slot?.Inventory is not {} inventory || !slot.Activated || _session.SourcePath == null)
   {
-   fields.Children.Add(new TextBlock { Text = "Select an enabled slot to add or replace an item.", TextWrapping = TextWrapping.Wrap });
+   fields.Children.Add(new TextBlock { Text = UiStrings.Get("inventory.select_enabled_slot"), TextWrapping = TextWrapping.Wrap });
    return card;
   }
 

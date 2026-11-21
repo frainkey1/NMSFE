@@ -8383,5 +8383,45 @@
 		"Procedural": false,
 		"SourceTable": "Product",
 		"Slug": "products/NIPPLANT"
+	},
+	{
+		"Id": "M~JVCDSC1C5C6DF",
+		"Name": "E. FREGASUS EXHIBIT",
+		"Name_LocStr": "NMSFE_EXHIBIT_FREGASUS_NAME",
+		"Icon": "EXHIBIT_FREGASUS.png",
+		"Group": "Pre-assembled Fossil Display",
+		"MaxStackSize": 1
+	},
+	{
+		"Id": "M~HZXBDC1C2C.DA",
+		"Name": "W. BEARATGIA EXHIBIT",
+		"Name_LocStr": "NMSFE_EXHIBIT_BEARATGIA_NAME",
+		"Icon": "EXHIBIT_BEARATGIA.png",
+		"Group": "Pre-assembled Fossil Display",
+		"MaxStackSize": 1
+	},
+	{
+		"Id": "M~KZYA3C1C.C2DA",
+		"Name": "D. BEETOFFARIMA EXHIBIT",
+		"Name_LocStr": "NMSFE_EXHIBIT_BEETOFFARIMA_NAME",
+		"Icon": "EXHIBIT_BEETOFFARIMA.png",
+		"Group": "Pre-assembled Fossil Display",
+		"MaxStackSize": 1
+	},
+	{
+		"Id": "M~I8ODIC1C-C.C6",
+		"Name": "I. BIKOUSIUM EXHIBIT",
+		"Name_LocStr": "NMSFE_EXHIBIT_BIKOUSIUM_NAME",
+		"Icon": "EXHIBIT_BIKOUSIUM.png",
+		"Group": "Pre-assembled Fossil Display",
+		"MaxStackSize": 1
+	},
+	{
+		"Id": "M~LL7A9CUC4C7DC",
+		"Name": "I. POTASNUCIUM EXHIBIT",
+		"Name_LocStr": "NMSFE_EXHIBIT_POTASNUCIUM_NAME",
+		"Icon": "EXHIBIT_POTASNUCIUM.png",
+		"Group": "Pre-assembled Fossil Display",
+		"MaxStackSize": 1
 	}
 ]

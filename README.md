@@ -41,6 +41,14 @@ dotnet run --project Desktop/Desktop.csproj -- --open <save-path> --verify-ui
 
 Engine checks use synthetic temporary profiles for direct writes, metadata preservation, backup, failure rollback and external-change protection. A real save8.hg is read to verify compressed-copy roundtrip and source hash preservation. UI checks exercise both themes, three widths, More expansion, mixed slot states, all 16 pages, Player/Exosuit/Multi-tools edits and repainting. Build outputs are generated locally and are not stored in the repository.
 
+## Screenshots
+
+![Player statistics in the light theme](Screenshots/player-statistics-light.png)
+
+![Multi-tools inventory in the dark theme](Screenshots/multitools-dark.png)
+
+![Milestones in the light theme](Screenshots/milestones-light.png)
+
 ## Source and license
 Derived engine snapshot: https://github.com/vectorcmdr/NMSE . Original source is under Engine/Upstream; see LICENSE (AGPL-3.0). Resource data/images came from the existing checkout. The new UI has no Windows Forms host or reference.
 
