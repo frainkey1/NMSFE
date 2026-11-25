@@ -33,7 +33,7 @@ Select an existing save and Load, or use Open. Edits remain in memory until Save
 Create a self-contained Windows x64 release ZIP with a single visible launcher and grouped resources:
 
 ```powershell
-.\scripts\Publish-Windows.ps1 -Version 1.0.1
+.\scripts\Publish-Windows.ps1 -Version 1.0.0
 ```
 
 The ZIP is written under `Build/Packages`. It contains `NMSFE.exe`, `Resources/`, and `README-FIRST.txt`; the .NET runtime is bundled in the executable.
