@@ -20,6 +20,28 @@ public partial class MainWindow
     throw new Exception("JSON redirect did not open the Raw JSON Editor page.");
    checks++;
    Navigate(new Button{Tag=MainPageCatalog.MultiTools},new RoutedEventArgs());
+   double previousMinHeight=Slots.MinHeight;
+   Slots.MinHeight=1200;
+   try
+   {
+    UpdateLayout();
+    await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+    DependencyObject? parent=Slots;
+    while(parent!=null && parent is not ScrollViewer)parent=VisualTreeHelper.GetParent(parent);
+    if(parent is not ScrollViewer gridScroll || gridScroll.ScrollableHeight<=0 ||
+       gridScroll.ComputedVerticalScrollBarVisibility!=Visibility.Visible)
+     throw new Exception("Overflowing multi-tool inventory has no vertical scrollbar.");
+    gridScroll.ScrollToBottom();
+    await Dispatcher.Yield(DispatcherPriority.ApplicationIdle);
+    if(gridScroll.VerticalOffset<gridScroll.ScrollableHeight-1)
+     throw new Exception("The multi-tool scrollbar cannot reach the bottom of the grid.");
+    gridScroll.ScrollToTop();
+   }
+   finally
+   {
+    Slots.MinHeight=previousMinHeight;
+   }
+   checks++;
    var allianceFixture=new AlliancePageView(new AlliancePageData("Fixture data", [new AllianceLeaderboardRow(1,"Read-only alliance",987654)], [], []));
    if(!allianceFixture.LeaderboardGrid.IsReadOnly || allianceFixture.LeaderboardGrid.CanUserAddRows ||
       allianceFixture.LeaderboardGrid.CanUserDeleteRows || allianceFixture.LeaderboardGrid.ItemsSource is not IEnumerable<AllianceLeaderboardRow> rows ||

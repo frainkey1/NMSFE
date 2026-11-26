@@ -22,6 +22,12 @@ internal sealed partial class DomainPageView
  UIElement BuildFreighterPage()
  {
   if(_session.Player is not {} p)return new TextBlock{Text="Freighter data is unavailable."};
+  if(string.IsNullOrWhiteSpace(p.GetObject("CurrentFreighter")?.GetString("Filename")))
+  {
+   _fName=null;
+   _selectedFreighterSlot=null;
+   return new TextBlock{Text=UiStrings.LocalizeText("No freighter is assigned in this save context."),Margin=new Thickness(8)};
+  }
   var root=new StackPanel();
   root.Children.Add(BuildFreighterDetailsCard());
   var tabs=new WrapPanel{Margin=new Thickness(0,6,0,3)};
@@ -32,8 +38,8 @@ internal sealed partial class DomainPageView
   body.ColumnDefinitions.Add(new(){Width=new GridLength(300)});
   var tiles=new UniformGrid{MinWidth=540,VerticalAlignment=VerticalAlignment.Top};
   var gridScroll=new ScrollViewer{Content=tiles,VerticalScrollBarVisibility=ScrollBarVisibility.Auto,HorizontalScrollBarVisibility=ScrollBarVisibility.Auto};
-  var resizeControls=new ContentControl();var inventoryBody=new StackPanel();inventoryBody.Children.Add(gridScroll);
-  var gridCard=new Border{Style=PageStyle("Card"),Child=inventoryBody,Margin=new Thickness(0,0,6,0)};
+  var resizeControls=new ContentControl();
+  var gridCard=new Border{Style=PageStyle("Card"),Child=gridScroll,Margin=new Thickness(0,0,6,0)};
   body.Children.Add(gridCard);
   var inspector=new StackPanel();
   var detail=new StackPanel();

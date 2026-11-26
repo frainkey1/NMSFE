@@ -74,7 +74,6 @@ public partial class MainWindow
    Edit(slot.Activated ? "Disable Slot" : "Enable Slot", draft =>
    {
     SaveSession.SetSlotEnabled(draft, slot.X, slot.Y, !slot.Activated);
-    if (slot.Supercharged) SaveSession.SetSupercharge(draft, slot.X, slot.Y, false);
    }, !occupied);
    Edit("Enable All Slots", draft =>
    {
@@ -98,11 +97,15 @@ public partial class MainWindow
     foreach (var cell in BuildSlotModels(draft).Items.Where(cell => cell.Activated && !cell.Supercharged))
      SaveSession.SetSupercharge(draft, cell.X, cell.Y, true);
    });
-   Edit("Remove All Supercharged Slots", draft =>
+  }
+  bool hasSupercharges = inventory.GetArray("SpecialSlots") is {} savedSpecialSlots &&
+   Enumerable.Range(0, savedSpecialSlots.Length).Any(i =>
+    savedSpecialSlots.Get(i) is JsonObject entry && SaveSession.IsSupercharge(entry));
+  if (kind.Supercharge || hasSupercharges)
+   Edit("Clear All Supercharges", draft =>
    {
     if (draft.GetArray("SpecialSlots") is {} special) SaveSession.RemoveEntries(special, SaveSession.IsSupercharge);
-   });
-  }
+   }, hasSupercharges);
   Edit("Repair Slot", draft => _session.RepairInventory(draft, kind, Match), occupied);
   Edit(kind.Technology ? "Fix All Damaged" : "Repair All Slots",
    draft => _session.RepairInventory(draft, kind, _ => true));

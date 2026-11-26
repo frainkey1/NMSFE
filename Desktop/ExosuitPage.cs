@@ -281,8 +281,7 @@ public partial class MainWindow
    else
    {
    var gridScroll=new ScrollViewer{VerticalScrollBarVisibility=ScrollBarVisibility.Auto,HorizontalScrollBarVisibility=ScrollBarVisibility.Auto};_exoTiles=new UniformGrid{Columns=10,VerticalAlignment=VerticalAlignment.Top,MinWidth=540};gridScroll.Content=_exoTiles;
-   var gridBody=new StackPanel();gridBody.Children.Add(gridScroll);
-   var gridCard=new Border{Style=(Style)FindResource("Card"),Child=gridBody};Grid.SetRow(gridCard,2);_exoContent.Children.Add(gridCard);
+   var gridCard=new Border{Style=(Style)FindResource("Card"),Child=gridScroll};Grid.SetRow(gridCard,2);_exoContent.Children.Add(gridCard);
    var detail=new StackPanel();
    var heading=new Border{CornerRadius=new CornerRadius(7),Padding=new Thickness(9),Margin=new Thickness(0,0,0,12)};heading.SetResourceReference(Border.BackgroundProperty,"AccentSurface");var headerText=new TextBlock{Text="╱╱  "+UiStrings.Get("exosuit.slot_details"),FontSize=17,FontWeight=FontWeights.SemiBold};headerText.SetResourceReference(TextBlock.ForegroundProperty,"OnAccent");heading.Child=headerText;detail.Children.Add(heading);
    _exoIcon=new Image{Height=88,Margin=new Thickness(0,0,0,9)};detail.Children.Add(_exoIcon);_exoName=new TextBlock{Text=UiStrings.Get("inventory.select_slot"),FontSize=16,FontWeight=FontWeights.SemiBold,TextWrapping=TextWrapping.Wrap,Margin=new Thickness(3,0,3,14)};detail.Children.Add(_exoName);

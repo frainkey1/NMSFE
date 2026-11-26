@@ -30,8 +30,8 @@ public sealed class SlotView
  public bool Supercharged {get;init;}
  public bool Activated {get;init;}
  public Brush Background=>!Activated?new SolidColorBrush(Color.FromRgb(69,29,31)):Supercharged?new LinearGradientBrush(Color.FromRgb(255,225,130),Color.FromRgb(183,129,24),90):(Brush)Application.Current.FindResource("Surface");
- public Brush Border=>Supercharged?Brushes.Goldenrod:(Brush)Application.Current.FindResource("Edge");
- public Brush LabelBackground=>Supercharged?new SolidColorBrush(Color.FromRgb(112,76,14)):new SolidColorBrush(Themes.Dark?Color.FromRgb(28,46,47):Color.FromRgb(3,82,100));
+ public Brush Border=>Activated&&Supercharged?Brushes.Goldenrod:(Brush)Application.Current.FindResource("Edge");
+ public Brush LabelBackground=>Activated&&Supercharged?new SolidColorBrush(Color.FromRgb(112,76,14)):new SolidColorBrush(Themes.Dark?Color.FromRgb(28,46,47):Color.FromRgb(3,82,100));
  public Brush LabelForeground=>Themes.Dark?(Brush)Application.Current.FindResource("Text"):Brushes.White;
 }
 public partial class MainWindow:Window
@@ -176,7 +176,7 @@ public partial class MainWindow:Window
    var variant=Regex.Match(id,@"#(\d+)$");if(item?.IsProcedural==true && variant.Success)displayName=ProcTechLogic.GenerateTechName(item,variant.Groups[1].Value,_session.GameLocalisation)??displayName;
    if(!string.IsNullOrWhiteSpace(displayName))displayName=UiStrings.LocalizeText(displayName);
    bool active=valid.Contains((x,y))||s!=null;bool charged=super.Contains((x,y));
-   items.Add(new(){Data=s,Inventory=store,X=x,Y=y,Name=displayName??(id.Length>0?id:active?UiStrings.Get("inventory.empty_slot"):UiStrings.Get("inventory.locked_slot")),Icon=LoadIcon(item?.Icon),Category=UiStrings.LocalizeText(item?.Category??""),Supercharged=charged,Activated=active,Badge=charged?"✦":"",AmountLabel=s==null||Int(s,"Amount")<0?"":Int(s,"MaxAmount")>0?$"{Int(s,"Amount")} / {Int(s,"MaxAmount")}":""});
+   items.Add(new(){Data=s,Inventory=store,X=x,Y=y,Name=displayName??(id.Length>0?id:active?UiStrings.Get("inventory.empty_slot"):UiStrings.Get("inventory.locked_slot")),Icon=LoadIcon(item?.Icon),Category=UiStrings.LocalizeText(item?.Category??""),Supercharged=charged,Activated=active,Badge=active&&charged?"✦":"",AmountLabel=s==null||Int(s,"Amount")<0?"":Int(s,"MaxAmount")>0?$"{Int(s,"Amount")} / {Int(s,"MaxAmount")}":""});
   }
   return (items,width,height);
  }

@@ -1,5 +1,5 @@
 param(
-    [string]$Version = "1.0.0"
+    [string]$Version = "1.0.1"
 )
 
 $ErrorActionPreference = "Stop"
@@ -34,6 +34,7 @@ dotnet publish (Join-Path $repoRoot "Desktop\Desktop.csproj") `
     -r win-x64 `
     --self-contained true `
     -o $packageDir `
+    "-p:Version=$Version" `
     -p:PublishSingleFile=true `
     -p:IncludeNativeLibrariesForSelfExtract=true `
     -p:DebugType=None `

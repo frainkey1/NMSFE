@@ -357,7 +357,7 @@ internal sealed partial class DomainPageView:Grid
    ? items.FirstOrDefault(cell=>cell.X==previous.X && cell.Y==previous.Y) : null);
   var layout=new DockPanel();
   DockPanel.SetDock(inspector,Dock.Right);layout.Children.Add(inspector);
-  layout.Children.Add(new ScrollViewer {Content=tiles,HorizontalScrollBarVisibility=ScrollBarVisibility.Auto,VerticalScrollBarVisibility=ScrollBarVisibility.Disabled});
+  layout.Children.Add(new ScrollViewer {Content=tiles,HorizontalScrollBarVisibility=ScrollBarVisibility.Auto,VerticalScrollBarVisibility=ScrollBarVisibility.Auto,MaxHeight=570});
   _form.Children.Add(new TextBlock{Text=UiStrings.Format("domain.slots_count",width,height),Margin=new Thickness(5,9,5,9)});
   bool showFossilNote=!technology && _section.Path is not ("FishPlatformInventory" or "FishBaitBoxInventory" or "FoodUnitInventory" or "CookingIngredientsInventory");
   if(showFossilNote)_form.Children.Add(new TextBlock{Text=UiStrings.Get("inventory.fossil_pcg_note"),Margin=new Thickness(5,0,5,8),TextWrapping=TextWrapping.Wrap});

@@ -2941,7 +2941,7 @@
   "inventory.menu.move_technology": "Move Technology",
   "inventory.menu.paste_replace": "Paste and Replace Item",
   "inventory.menu.recharge_slot": "Recharge Slot",
-  "inventory.menu.remove_all_supercharged": "Remove All Supercharged Slots",
+  "inventory.menu.remove_all_supercharged": "Clear All Supercharges",
   "inventory.menu.set_best_seed": "Set Best Seed",
   "inventory.menu.pin_updated": "Slot pin updated for this session.",
   "inventory.menu.supercharge_all": "Supercharge All Enabled Slots",
